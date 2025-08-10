@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head><title>Weather Data</title></head>
+<body>
+  <h1>Weather Station Data</h1>
+  <pre id="data">Loading...</pre>
+
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxzxy-9yfGgO0bJ7MtBFV3g7dGc1pbfJ4E41kGLwjgMyRqIQttFfolQmSFMmrBmpKG4/exec';
+
+    async function fetchWeather() {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Network error');
+        const data = await response.json();
+        if (!data.length) throw new Error('No data');
+
+        const w = data[0].lastData;
+        const updatedDate = new Date(w.dateutc);
+        const updatedStr = isNaN(updatedDate.getTime()) ? 'Unknown' : updatedDate.toLocaleString();
+
+        const output = `
+Temperature: ${w.tempf ?? 'N/A'} °F
+Humidity: ${w.humidity ?? 'N/A'} %
+Wind Speed: ${w.windspeedmph ?? 'N/A'} mph
+Rain (Last Hour): ${w.hourlyrainin ?? 'N/A'} in
+Pressure: ${w.baromrelin ?? 'N/A'} inHg
+
+Last Updated: ${updatedStr}
+        `;
+
+        document.getElementById('data').textContent = output;
+      } catch (e) {
+        document.getElementById('data').textContent = 'Error: ' + e.message;
+      }
+    }
+
+    fetchWeather();
+    setInterval(fetchWeather, 60000);
+  </script>
+</body>
+</html>
+
