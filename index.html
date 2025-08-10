@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ambient Weather Station Live Data</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #333;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #0077cc;
+    }
+    .weather-card {
+      display: inline-block;
+      background: white;
+      padding: 20px;
+      margin: 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      min-width: 200px;
+      vertical-align: top;
+    }
+    .label {
+      font-weight: bold;
+      color: #555;
+      margin-bottom: 5px;
+      font-size: 1.1em;
+    }
+    .value {
+      font-size: 1.8em;
+      color: #222;
+    }
+    .updated {
+      margin-top: 20px;
+      font-size: 0.9em;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ambient Weather Station Live Data</h1>
+  <div id="weather-container">Loading data...</div>
+  <div class="updated" id="last-updated"></div>
+
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxzxy-9yfGgO0bJ7MtBFV3g7dGc1pbfJ4E41kGLwjgMyRqIQttFfolQmSFMmrBmpKG4/exec';
+
+    async function fetchWeather() {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Network response was not OK');
+        const data = await response.json();
+
+        if (!data.length) throw new Error('No data returned');
+
+        const weather = data[0];
+
+        document.getElementById('weather-container').innerHTML = `
+          <div class="weather-card">
+            <div class="label">Temperature</div>
+            <div class="value">${weather.tempf} °F</div>
+          </div>
+          <div class="weather-card">
+            <div class="label">Humidity</div>
+            <div class="value">${weather.hum} %</div>
+          </div>
+          <div class="weather-card">
+            <div class="label">Wind Speed</div>
+            <div class="value">${weather.windspd} mph</div>
+          </div>
+          <div class="weather-card">
+            <div class="label">Rain (Last Hour)</div>
+            <div class="value">${weather.hourlyrainin} in</div>
+          </div>
+          <div class="weather-card">
+            <div class="label">Pressure</div>
+            <div class="value">${weather.pressurein} inHg</div>
+          </div>
+        `;
+
+        const updatedDate = new Date(weather.dateutc * 1000);
+        document.getElementById('last-updated').textContent = 'Last updated: ' + updatedDate.toLocaleString('en-US', { timeZone: 'America/New_York' });
+      } catch (error) {
+        document.getElementById('weather-container').textContent = 'Error loading data: ' + error.message;
+        document.getElementById('last-updated').textContent = '';
+        console.error(error);
+      }
+    }
+
+    fetchWeather();
+    setInterval(fetchWeather, 60 * 1000); // Refresh every 60 seconds
+  </script>
+</body>
+</html>
