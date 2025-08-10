@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ambient Weather Station Live Data</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background: #e3f2fd;
+      color: #0d47a1;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    #weather-data {
+      max-width: 500px;
+      margin: 2rem auto;
+      padding: 1.5rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #90caf9;
+    }
+    .data-row {
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Ambient Weather Station Live Data</h1>
+  <div id="weather-data">
+    <h2>Loading data...</h2>
+  </div>
+
+  <script>
+    // Your actual Ambient Weather API keys and MAC address
+    const API_KEY = 'ccdc86f929764e67a44673c4bf16aa2b2288c77e178d44fa9634be536bd3cfd2';
+    const API_SECRET = 'f00a8638569747c48462796fd6062295d4eae844bf0b436fb00b0121016d30dd';
+    const MAC_ADDRESS = '48E72969D9A2';  // MAC without colons, uppercase
+
+    async function fetchWeather() {
+      try {
+        const url = `https://api.ambientweather.net/v1/devices/${MAC_ADDRESS}?applicationKey=${API_KEY}&apiKey=${API_SECRET}`;
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error('Network response was not OK');
+        }
+        const data = await response.json();
+        if (data.length === 0) {
+          throw new Error('No data returned');
+        }
+        const latest = data[0];
+        const html = `
+          <div class="data-row"><strong>Temperature:</strong> ${latest.tempf} °F</div>
+          <div class="data-row"><strong>Humidity:</strong> ${latest.hum} %</div>
+          <div class="data-row"><strong>Wind Speed:</strong> ${latest.windspd} mph</div>
+          <div class="data-row"><strong>Rain (Last Hour):</strong> ${latest.hourlyrainin} in</div>
+          <div class="data-row"><strong>Pressure:</strong> ${latest.pressurein} inHg</div>
+          <div class="data-row"><small>Last updated: ${new Date(latest.dateutc * 1000).toLocaleString('en-US', {timeZone: 'America/New_York'})}</small></div>
+        `;
+        document.getElementById('weather-data').innerHTML = html;
+      } catch (error) {
+        document.getElementById('weather-data').innerHTML = `<p style="color:red;">Error loading data: ${error.message}</p>`;
+      }
+    }
+
+    fetchWeather();
+    setInterval(fetchWeather, 5 * 60 * 1000);  // refresh every 5 minutes
+  </script>
+
+</body>
+</html>
